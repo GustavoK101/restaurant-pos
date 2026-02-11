@@ -63,4 +63,14 @@ public class OrderService {
                 order
         );
     }
+
+    public List<Order> getAllOrders() {
+        return repository.findAll();
+    }
+
+
+    public Order getOrderById(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+    }
 }
