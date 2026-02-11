@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.MenuResponseDTO;
 import com.example.demo.model.MenuItem;
 import com.example.demo.repository.MenuItemRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +11,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/menu-items")
-@RequiredArgsConstructor
 public class MenuItemController {
     private final MenuItemRepository repository;
+
+    public MenuItemController(MenuItemRepository repository) {
+        this.repository = repository;
+    }
 
     @PostMapping
     public MenuItem create(@RequestBody MenuItem item) {
