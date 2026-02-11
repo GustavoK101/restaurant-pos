@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:8.2.5
     ports:
       - "27017:27017"
 
@@ -28,6 +26,7 @@ services:
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/order_db
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - MENU_SERVICE_URL=http://menu:8081
     depends_on:
       - mongodb
       - rabbitmq

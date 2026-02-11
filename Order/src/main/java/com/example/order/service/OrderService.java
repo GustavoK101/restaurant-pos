@@ -7,7 +7,6 @@ import com.example.order.dto.MenuItemDTO;
 import com.example.order.dto.OrderRequestDTO;
 import com.example.order.model.Order;
 import com.example.order.model.OrderItem;
-import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository repository;
     private final MenuClient menuClient; // Our Feign Client
     private final RabbitTemplate rabbitTemplate;
+
+    public OrderService(OrderRepository repository, MenuClient menuClient, RabbitTemplate rabbitTemplate) {
+        this.repository = repository;
+        this.menuClient = menuClient;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     public Order createOrder(OrderRequestDTO request) {
         Order order = new Order();
