@@ -8,6 +8,8 @@ import com.example.order.dto.OrderRequestDTO;
 import com.example.order.model.Order;
 import com.example.order.model.OrderItem;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,7 +19,7 @@ import java.util.List;
 @Service
 public class OrderService {
     private final OrderRepository repository;
-    private final MenuClient menuClient; // Our Feign Client
+    private final MenuClient menuClient;
     private final RabbitTemplate rabbitTemplate;
 
     public OrderService(OrderRepository repository, MenuClient menuClient, RabbitTemplate rabbitTemplate) {
@@ -36,7 +38,6 @@ public class OrderService {
         List<OrderItem> items = new ArrayList<>();
 
         for (var reqItem : request.getOrderItems()) {
-            // Synchronous call to Menu Service
             MenuItemDTO menuInfo = menuClient.getMenuItemById(reqItem.getProductId());
 
             OrderItem item = new OrderItem();
@@ -53,8 +54,31 @@ public class OrderService {
         order.setTotalAmount(total);
 
         Order savedOrder = repository.save(order);
+        sendStatusNotification(savedOrder);
 
-        // Notify via RabbitMQ
+        return savedOrder;
+    }
+
+    // Updated to support pagination requirements
+    public Page<Order> getAllOrders(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
+    public Order getOrderById(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+    }
+
+    public Order updateStatus(String id, String newStatus) {
+        // Changed orderRepository to repository to match your final field name
+        Order order = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+        Order savedOrder = repository.save(order);
+
+        // Trigger RabbitMQ notification on status change
         sendStatusNotification(savedOrder);
 
         return savedOrder;
@@ -66,15 +90,5 @@ public class OrderService {
                 RabbitMQConfig.ROUTING_KEY,
                 order
         );
-    }
-
-    public List<Order> getAllOrders() {
-        return repository.findAll();
-    }
-
-
-    public Order getOrderById(String id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
     }
 }

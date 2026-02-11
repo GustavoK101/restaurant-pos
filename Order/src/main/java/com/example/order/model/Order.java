@@ -14,6 +14,15 @@ public class Order {
     private Double totalAmount;
     private String status; // CREATED, PREPARING, DELIVERED
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     public String getId() {
         return id;

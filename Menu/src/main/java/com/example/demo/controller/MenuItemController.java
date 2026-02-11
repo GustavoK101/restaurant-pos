@@ -2,9 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.MenuResponseDTO;
 import com.example.demo.model.MenuItem;
-import com.example.demo.repository.MenuItemRepository;
+import com.example.demo.service.MenuService; // Inject Service instead
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -12,20 +13,22 @@ import java.util.Map;
 @RestController
 @RequestMapping("/menu-items")
 public class MenuItemController {
-    private final MenuItemRepository repository;
 
-    public MenuItemController(MenuItemRepository repository) {
-        this.repository = repository;
+    private final MenuService menuService;
+
+    public MenuItemController(MenuService menuService) {
+        this.menuService = menuService;
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED) // Best practice for POST
     public MenuItem create(@RequestBody MenuItem item) {
-        return repository.save(item);
+        return menuService.saveMenuItem(item); // Add this method to service or keep repo call
     }
 
     @GetMapping("/{id}")
     public MenuItem getById(@PathVariable String id) {
-        return repository.findById(id).orElseThrow();
+        return menuService.getMenuItemById(id);
     }
 
     @GetMapping
@@ -33,31 +36,24 @@ public class MenuItemController {
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "0") int offset) {
 
-        // Calculate page index from offset
         int page = offset / limit;
-
-        PageRequest pageRequest = PageRequest.of(page, limit);
-        Page<MenuItem> menuPage = repository.findAll(pageRequest);
+        Page<MenuItem> menuPage = menuService.getAllMenuItems(PageRequest.of(page, limit));
 
         return new MenuResponseDTO(
                 menuPage.getContent(),
                 menuPage.getTotalElements()
         );
     }
+
     @PutMapping("/{id}")
     public MenuItem update(@PathVariable String id, @RequestBody MenuItem updatedItem) {
-        return repository.findById(id)
-                .map(item -> {
-                    item.setName(updatedItem.getName());
-                    item.setDescription(updatedItem.getDescription());
-                    item.setPrice(updatedItem.getPrice());
-                    return repository.save(item);
-                }).orElseThrow(() -> new RuntimeException("Item not found"));
+        // This now uses the logic you fixed in the Service earlier
+        return menuService.updateMenuItem(id, updatedItem);
     }
 
     @DeleteMapping("/{id}")
     public Map<String, String> delete(@PathVariable String id) {
-        repository.deleteById(id);
+        menuService.deleteMenuItem(id);
         return Map.of(
                 "message", "Menu item deleted successfully",
                 "id", id
