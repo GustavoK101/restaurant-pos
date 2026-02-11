@@ -9,7 +9,7 @@ COPY mvnw ./mvnw
 
 COPY .mvn ./.mvn
 
-RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
