@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: menu-service
+              uri: http://menu:8081
+              predicates:
+                - Path=/menu-items/**
+            - id: order-service
+              uri: http://order:8082
+              predicates:
+                - Path=/orders/**
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

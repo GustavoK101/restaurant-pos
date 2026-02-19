@@ -24,8 +24,6 @@ services:
 
   menu:
     build: ./Menu
-    ports:
-      - "8081:8081"
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/menu_db
     depends_on:
@@ -34,14 +32,21 @@ services:
 
   order:
     build: ./Order
-    ports:
-      - "8080:8080"
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/order_db
       - SPRING_RABBITMQ_HOST=rabbitmq
       - MENU_SERVICE_URL=http://menu:8081
+      - SERVER_PORT=8082
     depends_on:
       mongodb:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+
+  gateway:
+    build: ./Gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - menu
+      - order
